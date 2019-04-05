@@ -1,7 +1,17 @@
 <!DOCTYPE html>
+<head>
+  <style>
+    body{
+      font-family: sans-serif;
+    }
+  </style>
+</head>
 <body>
   <!-- Placeholder for the widget -->
   <h1>Frecuencias Buses Transmilenio</h1>
+  <div>Arrastre, o filtre en el widget de abajo para filtrar. <a href="https://github.com/john-guerra/frecuencias_transmilenio">Los datos los encuentra en el repositorio</a></div>
+  <div>Desarrollado por <a href="https://johnguerra.co">John Alexis Guerra Gómez</a></div>
+  <br>
   <div >
     <div id="navio" style="float:left; width:40%; overflow-x:scroll"></div>
     <div id="vis" style="float:left; width:50%; overflow-x:scroll"></div>
@@ -19,6 +29,8 @@
 
     </tbody>
   </table>
+
+
 
   <!-- NAVIO Step 0: Load the libraries -->
   <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
@@ -86,7 +98,10 @@ function drawVega(selected) {
     data: {
       values: selected
     },
-    mark: "circle",
+    mark: {
+      type: "circle",
+      "tooltip": {"content": "data"}
+    },
     title: "Selected rows",
     "columns": 2,
     encoding: {
