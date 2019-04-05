@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<body>
+  <!-- Placeholder for the widget -->
+  <h1>Frecuencias Buses Transmilenio</h1>
+  <div >
+    <div id="navio" style="float:left; width:40%; overflow-x:scroll"></div>
+    <div id="vis" style="float:left; width:50%; overflow-x:scroll"></div>
+
+  </div>
+
+  <div style="clear:both"></div>
+
+  <span id="count"></span>
+  <table cellpadding="10">
+    <tbody>
+      <tr>
+       <span id="headers"></span>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- NAVIO Step 0: Load the libraries -->
+  <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script src="https://unpkg.com/popper.js@1.14/dist/umd/popper.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/navio/dist/navio.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.3.4/build/vega.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@3.1.0/build/vega-lite.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@4.0.0/build/vega-embed.js"></script>
+
+<script>
+/* global d3, navio */
+// NAVIO  Step 1.  Create a Navio passing a d3 selection to place it and an optional height
+var nv = navio(d3.select("#navio"), 600);
+const numToShow = 20;
+let attributesToShow = [];
+
+const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+d3.json("./frequencies.json", function (err, data) {
+  if (err) throw err;
+
+  attributesToShow = d3.keys(data[0]).filter(a => ["__seqId", "selected", "__i"].indexOf(a)===-1);
+  // NAVIO Step 2. Load your data!
+  nv.data(data);
+
+  nv.addCategoricalAttrib("tipo", color);
+
+  // NAVIO Step 3. Detect your attributes (or load them manually)
+  nv.addAllAttribs();
+
+  // Optional, setup a selection callback
+  nv.updateCallback( update);
+
+  update(data);
+
+  // vl.register(vega);
+});
+
+
+function update(selected) {
+  const table = d3.select("table");
+  d3.select("#count").text(`Showing ${numToShow} out of ${selected.length}`);
+  table
+    .select("tbody")
+    .selectAll("tr.data").remove();
+  let trs =  table
+    .select("tbody")
+    .selectAll("tr.data")
+    .data(selected
+      .slice(0,numToShow))
+    .enter()
+    .append("tr")
+    .attr("class", "data");
+
+  attributesToShow.forEach( a=> trs.append("td").text(d=> d[a]));
+
+  drawVega(selected);
+}
+
+function drawVega(selected) {
+  var vlSpec = {
+    $schema: "https://vega.github.io/schema/vega-lite/v3.json",
+    data: {
+      values: selected
+    },
+    mark: "circle",
+    title: "Selected rows",
+    "columns": 2,
+    encoding: {
+      "facet": {
+        "field": "tipo",
+        "type": "nominal"
+      },
+      x : { field: "frecuencia_pico", type: "quantitative"},
+      y : { field: "frecuencia_normal", type: "quantitative"},
+      color : { field: "tipo", type: "nominal",
+        scale: { range: color.range(), domain: color.domain()}
+      }
+    }
+  };
+
+  // Embed the visualization in the container with id `vis`
+  vegaEmbed('#vis', vlSpec);
+}
+</script>
+</body>
+</html>
